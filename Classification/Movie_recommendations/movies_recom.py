@@ -10,9 +10,9 @@ warnings.filterwarnings("ignore")
 #IMPORT DAS BASES
 paths ='C:/Users/tomas/OneDrive/Área de Trabalho/Tomás/FEA/Dev/IA/ml-latest-small/ml-latest-small'
 
-movies = pd.read_csv(paths+'/movies.csv')
-ratings = pd.read_csv(paths+'/ratings.csv')
-tag = pd.read_csv(paths+'/tags.csv')
+movies = pd.read_csv('movies.csv')
+ratings = pd.read_csv('ratings.csv')
+tag = pd.read_csv('tags.csv')
 notlisted = movies[movies['genres']=='(no genres listed)']
 movies = movies[movies['genres']!='(no genres listed)']
 '''
@@ -57,18 +57,18 @@ movies = movies.merge(most_rated,on = 'movieId',how='left',validate='many_to_one
 #%%
 #MONTAR VARIAS COLUNAS COM  GENEROS
 
-genres = pd.DataFrame(columns=['genre1', 'genre2', 'genre3', 'genre4', 'genre5'])
+genres = pd.DataFrame(columns=['genre1', 'genre2', 'genre3'])
 def genero(df,dff):
     for i in df['genres']:
         y = i.split('|')
-        if len(y)<5:
-            to_5 = 5 - len(y)
+        if len(y)<3:
+            to_3 = 3 - len(y)
             c=0
-            while to_5>0:
+            while to_3>0:
                 y.append(y[c])
-                to_5-=1
-        elif len(y)>5:
-            y = y[0:5]  
+                to_3-=1
+        elif len(y)>3:
+            y = y[0:3]  
         length = len(dff)
         dff.loc[length] = y
     return dff
@@ -129,7 +129,7 @@ class MultiColumnLabelEncoder:
         for col in columns:
             output[col] = self.encoders[col].inverse_transform(X[col])
         return output
-multi = MultiColumnLabelEncoder(columns=['genre1', 'genre2', 'genre3', 'genre4', 'genre5'])
+multi = MultiColumnLabelEncoder(columns=['genre1', 'genre2', 'genre3'])
 
 df  = multi.fit_transform(films)
 
@@ -151,13 +151,43 @@ pipeline = make_pipeline(scaler,nmf,normalizer)
 
 ppl = pipeline.fit_transform(df)
 dff = pd.DataFrame(ppl,index=films['movieId'])
+#%%
+def select_movie():
+    print('Escreva parte do nome do filme:')
+    movie_name = input()
+    x = title.str.contains(movie_name, regex=False)
+    x = pd.DataFrame(x)
+    
+    result_df= x.loc[x['title']==True].index
+    
+    if len(result_df) == 0:
+        print('Esse filme não está na base')
+    else:
+        c = 0
+        ll = []
+        print(len(result_df), 'Resultado(s) para busca:')
+        for i in result_df:
+            y = movies.loc[[i]][['title']]
+            ll.append(y['title'].iloc[0])
+            print(c, y['title'].iloc[0])    
+            c +=1
+        print('Selecione uma opção')  
+        opc = int(input())
+        print('Opção selecionada:', ll[opc])
+    
+    esc = title.str.contains(ll[opc], regex=False)
+    esc = pd.DataFrame(esc)
+    result_esc= esc.loc[esc['title']==True].index
+    movie_to_rec = movies.iloc[result_esc[0]]['movieId']
+    return movie_to_rec
+movie_to_rec = select_movie()
+filme_base = dff.loc[movie_to_rec]
 
-filme_base = dff.loc[546]
 similarities = dff.dot(filme_base)
 movie_rec = similarities.nlargest(11)
-print(similarities.nlargest(11))
+#print(similarities.nlargest(11))
 
-#%%
+
 def recommend():
     c=0
     l = movie_rec.index.tolist()
@@ -170,4 +200,5 @@ def recommend():
             c+=1
             pass
 recommend()
+
 

@@ -146,12 +146,12 @@ nmf = NMF()
 normalizer = Normalizer()
 
 #MONTAR A PIPELINE
-pipeline = make_pipeline(scaler,nmf,normalizer)
-#%%
+pipeline = make_pipeline(scaler,nmf)
+
 
 ppl = pipeline.fit_transform(df)
 dff = pd.DataFrame(ppl,index=films['movieId'])
-#%%
+
 def select_movie():
     print('Escreva parte do nome do filme:')
     movie_name = input()
@@ -180,15 +180,18 @@ def select_movie():
     result_esc= esc.loc[esc['title']==True].index
     movie_to_rec = movies.iloc[result_esc[0]]['movieId']
     return movie_to_rec
-movie_to_rec = select_movie()
-filme_base = dff.loc[movie_to_rec]
-
-similarities = dff.dot(filme_base)
-movie_rec = similarities.nlargest(11)
-#print(similarities.nlargest(11))
+def select():
+    movie_to_rec = select_movie()
+    filme_base = dff.loc[movie_to_rec]
+    
+    similarities = dff.dot(filme_base)
+    movie_rec = similarities.nlargest(11)
+    #print(similarities.nlargest(11))
+    return movie_rec
 
 
 def recommend():
+    movie_rec = select()
     c=0
     l = movie_rec.index.tolist()
     for i in l:
@@ -201,4 +204,10 @@ def recommend():
             pass
 recommend()
 
-
+while True:
+    print('dnv? S/N')
+    res = input()
+    if res.upper() == 'S':
+        recommend()
+    else:
+        break

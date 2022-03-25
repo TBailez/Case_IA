@@ -53,22 +53,23 @@ tagged, most_tagged = m_tagged(tagged)
 
 
 movies = movies.merge(most_rated,on = 'movieId',how='left',validate='many_to_one')
-
+#movies = movies.merge(most_tagged,on = 'movieId',how='left',validate='many_to_one')
+#movies = movies.fillna(0)
 #%%
 #MONTAR VARIAS COLUNAS COM  GENEROS
 
-genres = pd.DataFrame(columns=['genre1', 'genre2', 'genre3'])
+genres = pd.DataFrame(columns=['genre1', 'genre2', 'genre3', 'genre4','genre5'])
 def genero(df,dff):
     for i in df['genres']:
         y = i.split('|')
-        if len(y)<3:
-            to_3 = 3 - len(y)
+        if len(y)<5:
+            to_5 = 5 - len(y)
             c=0
-            while to_3>0:
+            while to_5>0:
                 y.append(y[c])
-                to_3-=1
-        elif len(y)>3:
-            y = y[0:3]  
+                to_5-=1
+        elif len(y)>5:
+            y = y[0:5]  
         length = len(dff)
         dff.loc[length] = y
     return dff
@@ -84,6 +85,13 @@ try:
     media_ratings = pd.DataFrame(media_grouped['rating'])
     media_ratings.reset_index(inplace=True)
     movies = pd.merge(movies, media_ratings,how = 'left',on= 'movieId')
+    '''
+    median_grouped = ratings.groupby(['movieId']).median()
+    median_ratings = pd.DataFrame(median_grouped['rating'])
+    median_ratings.rename(columns = {'rating':'rating_median'}, inplace = True)
+    median_ratings.reset_index(inplace=True)
+    movies = pd.merge(movies, median_ratings,how = 'left',on= 'movieId')'''
+    
 except:
     print('Ja rodou essa celula')
     pass
@@ -129,7 +137,7 @@ class MultiColumnLabelEncoder:
         for col in columns:
             output[col] = self.encoders[col].inverse_transform(X[col])
         return output
-multi = MultiColumnLabelEncoder(columns=['genre1', 'genre2', 'genre3'])
+multi = MultiColumnLabelEncoder(columns=['genre1', 'genre2', 'genre3', 'genre4','genre5'])
 
 df  = multi.fit_transform(films)
 
@@ -145,8 +153,8 @@ nmf = NMF()
 #NORMALIZADOR
 normalizer = Normalizer()
 
-#MONTAR A PIPELINE
-pipeline = make_pipeline(scaler,nmf)
+    #MONTAR A PIPELINE
+pipeline = make_pipeline(scaler,normalizer,nmf)
 
 
 ppl = pipeline.fit_transform(df)
@@ -180,6 +188,7 @@ def select_movie():
     result_esc= esc.loc[esc['title']==True].index
     movie_to_rec = movies.iloc[result_esc[0]]['movieId']
     return movie_to_rec
+
 def select():
     movie_to_rec = select_movie()
     filme_base = dff.loc[movie_to_rec]
@@ -209,5 +218,11 @@ while True:
     res = input()
     if res.upper() == 'S':
         recommend()
-    else:
+    elif res.upper() == 'N':
         break
+    else:
+        pass
+        
+        
+        
+        

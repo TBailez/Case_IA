@@ -8,7 +8,6 @@ from sklearn.preprocessing import LabelEncoder
 import warnings
 warnings.filterwarnings("ignore")
 #IMPORT DAS BASES
-paths ='C:/Users/tomas/OneDrive/Área de Trabalho/Tomás/FEA/Dev/IA/ml-latest-small/ml-latest-small'
 
 movies = pd.read_csv('movies.csv')
 ratings = pd.read_csv('ratings.csv')
